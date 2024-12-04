@@ -77,7 +77,43 @@ pub fn part_one(input: &str) -> Option<u32> {
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    None
+    let grid: Vec<Vec<char>> = input.lines().map(|x| x.chars().collect()).collect();
+    let row_num = grid.len();
+    let col_num = grid[0].len();
+
+    let mas = "MAS";
+    let mas_rev = "SAM";
+    let mas_len = mas.len();
+
+    let mut occurrences = 0;
+
+    for i in 0..row_num - mas_len + 1 {
+        for j in 0..col_num - mas_len + 1 {
+            let mut diag = Vec::new();
+
+            for k in 0..mas_len {
+                diag.push(grid[i + k][j + k]);
+            }
+
+            if match_count(&diag, mas) != 1 && match_count(&diag, mas_rev) != 1 {
+                continue;
+            }
+
+            let mut diag = Vec::new();
+
+            for k in 0..mas_len {
+                diag.push(grid[i + mas_len - 1 - k][j + k]);
+            }
+
+            if match_count(&diag, mas) != 1 && match_count(&diag, mas_rev) != 1 {
+                continue;
+            }
+
+            occurrences += 1;
+        }
+    }
+
+    Some(occurrences)
 }
 
 fn match_count(str: &[char], pat: &str) -> u32 {
@@ -101,6 +137,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(9));
     }
 }
