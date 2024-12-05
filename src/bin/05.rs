@@ -40,7 +40,7 @@ pub fn part_two(input: &str) -> Option<u32> {
     Some(result)
 }
 
-fn calculate_result<F>(input: &str, mut calculation: F) -> Option<u32>
+fn calculate_result<F>(input: &str, mut calculation: F) -> ()
 where
     F: FnMut(&mut [u32], &HashSet<(u32, u32)>),
 {
@@ -48,7 +48,6 @@ where
         panic!();
     };
 
-    let mut result = 0;
     let mut less_than_set = HashSet::new();
 
     for line in ordering_rules_str.lines() {
@@ -70,16 +69,7 @@ where
             .collect::<Vec<u32>>();
 
         calculation(&mut update, &less_than_set);
-
-        if update
-            .windows(2)
-            .all(|w| less_than_set.contains(&(w[0], w[1])))
-        {
-            result += update[update.len() / 2];
-        }
     }
-
-    Some(result)
 }
 
 #[cfg(test)]
