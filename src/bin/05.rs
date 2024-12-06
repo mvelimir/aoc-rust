@@ -8,7 +8,7 @@ pub fn part_one(input: &str) -> Option<u32> {
     calculate_result(input, |update, less_than_set| {
         if update
             .windows(2)
-            .all(|w| less_than_set.contains(&(w[0], w[1])))
+            .all(|w| less_than_set.contains(format!("{}|{}", w[0], w[1]).as_str()))
         {
             result += update[update.len() / 2];
         }
@@ -23,10 +23,10 @@ pub fn part_two(input: &str) -> Option<u32> {
     calculate_result(input, |update, less_than_set| {
         if !update
             .windows(2)
-            .all(|w| less_than_set.contains(&(w[0], w[1])))
+            .all(|w| less_than_set.contains(format!("{}|{}", w[0], w[1]).as_str()))
         {
             update.sort_by(|a, b| {
-                if less_than_set.contains(&(*a, *b)) {
+                if less_than_set.contains(format!("{}|{}", a, b).as_str()) {
                     Ordering::Less
                 } else {
                     Ordering::Greater
@@ -42,24 +42,14 @@ pub fn part_two(input: &str) -> Option<u32> {
 
 fn calculate_result<F>(input: &str, mut calculation: F) -> ()
 where
-    F: FnMut(&mut [u32], &HashSet<(u32, u32)>),
+    F: FnMut(&mut [u32], &HashSet<&str>),
 {
-    let [ordering_rules_str, updates_str] = input.split("\n\n").collect::<Vec<_>>()[..] else {
-        panic!();
-    };
+    let (ordering_rules_str, updates_str) = input.split_once("\n\n").unwrap();
 
     let mut less_than_set = HashSet::new();
 
     for line in ordering_rules_str.lines() {
-        let [l, r] = line
-            .split("|")
-            .map(|x| x.parse().unwrap())
-            .collect::<Vec<u32>>()[..]
-        else {
-            panic!();
-        };
-
-        less_than_set.insert((l, r));
+        less_than_set.insert(line);
     }
 
     for line in updates_str.lines() {
