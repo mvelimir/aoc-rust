@@ -70,7 +70,7 @@ impl<T: Clone> Iterator for VariationIter<T> {
 }
 
 pub fn part_one(input: &str) -> Option<u64> {
-    input
+    let sum = input
         .lines()
         .map(|x| {
             let tuple = x.split_once(": ").unwrap();
@@ -94,19 +94,19 @@ pub fn part_one(input: &str) -> Option<u64> {
                 });
 
                 if target_num == res {
-                    return Some(target_num);
+                    return target_num;
                 }
             }
 
-            None
+            0
         })
-        .fold(Some(0), |acc, x| {
-            acc.map(|acc| x.map_or(acc, |val| acc + val))
-        })
+        .sum();
+
+    Some(sum)
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    input
+    let sum = input
         .lines()
         .map(|x| {
             let tuple = x.split_once(": ").unwrap();
@@ -126,15 +126,15 @@ pub fn part_two(input: &str) -> Option<u64> {
                     .fold(nums[0], |acc, i| operations[i].perform(acc, nums[i + 1]));
 
                 if target_num == res {
-                    return Some(target_num);
+                    return target_num;
                 }
             }
 
-            None
+            0
         })
-        .fold(Some(0), |acc, x| {
-            acc.map(|acc| x.map_or(acc, |val| acc + val))
-        })
+        .sum();
+
+    Some(sum)
 }
 
 #[cfg(test)]
