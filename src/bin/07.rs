@@ -69,18 +69,11 @@ impl<T: Clone> Iterator for VariationIter<T> {
     }
 }
 
-pub fn part_one(input: &str) -> Option<u64> {
+pub fn part_one_slow(input: &str) -> Option<u64> {
     let sum = input
         .lines()
-        .map(|x| {
-            let tuple = x.split_once(": ").unwrap();
-
-            let target_num = tuple.0.parse::<u64>().unwrap();
-            let nums: Vec<u64> = tuple
-                .1
-                .split_whitespace()
-                .map(|x| x.parse().unwrap())
-                .collect();
+        .map(|line| {
+            let (target_num, nums) = parse_line(line);
 
             let total_combinations = 1 << nums.len() - 1;
 
@@ -105,18 +98,11 @@ pub fn part_one(input: &str) -> Option<u64> {
     Some(sum)
 }
 
-pub fn part_two(input: &str) -> Option<u64> {
+pub fn part_two_slow(input: &str) -> Option<u64> {
     let sum = input
         .lines()
-        .map(|x| {
-            let tuple = x.split_once(": ").unwrap();
-
-            let target_num = tuple.0.parse::<u64>().unwrap();
-            let nums: Vec<u64> = tuple
-                .1
-                .split_whitespace()
-                .map(|x| x.parse().unwrap())
-                .collect();
+        .map(|line| {
+            let (target_num, nums) = parse_line(line);
 
             for operations in VariationIter::new(
                 nums.len() - 1,
@@ -135,6 +121,64 @@ pub fn part_two(input: &str) -> Option<u64> {
         .sum();
 
     Some(sum)
+}
+
+pub fn part_one(input: &str) -> Option<u64> {
+    let sum = input
+        .lines()
+        .map(|line| {
+            let (res, nums) = parse_line(line);
+            let ops = [Operation::Add, Operation::Multiply];
+
+            if expr_exists(res, &nums, &ops, 0) {
+                res
+            } else {
+                0
+            }
+        })
+        .sum();
+
+    Some(sum)
+}
+
+pub fn part_two(input: &str) -> Option<u64> {
+    let sum = input
+        .lines()
+        .map(|line| {
+            let (res, nums) = parse_line(line);
+            let ops = [Operation::Add, Operation::Multiply, Operation::Concatenate];
+
+            if expr_exists(res, &nums, &ops, 0) {
+                res
+            } else {
+                0
+            }
+        })
+        .sum();
+
+    Some(sum)
+}
+
+fn parse_line(line: &str) -> (u64, Vec<u64>) {
+    let tuple = line.split_once(": ").unwrap();
+
+    let res = tuple.0.parse::<u64>().unwrap();
+    let nums: Vec<u64> = tuple
+        .1
+        .split_whitespace()
+        .map(|x| x.parse().unwrap())
+        .collect();
+
+    (res, nums)
+}
+
+fn expr_exists(res: u64, nums: &[u64], ops: &[Operation], acc: u64) -> bool {
+    if nums.is_empty() {
+        return res == acc;
+    }
+
+    ops.iter()
+        .any(|op| expr_exists(res, &nums[1..], ops, op.perform(acc, nums[0])))
 }
 
 #[cfg(test)]
