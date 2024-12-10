@@ -100,7 +100,15 @@ pub fn part_one(input: &str) -> Option<u32> {
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    None
+    let grid = Grid::from_str(input);
+
+    let score = grid
+        .find(0)
+        .into_iter()
+        .map(|trailhead| find_trailhead_score_distinct(&grid, &trailhead))
+        .sum();
+
+    Some(score)
 }
 
 fn find_trailhead_score(grid: &Grid, pos: &(usize, usize), acc: &mut HashSet<String>) {
@@ -113,6 +121,17 @@ fn find_trailhead_score(grid: &Grid, pos: &(usize, usize), acc: &mut HashSet<Str
     grid.possible_next_positions(&pos)
         .iter()
         .for_each(|next_pos| find_trailhead_score(grid, next_pos, acc))
+}
+
+fn find_trailhead_score_distinct(grid: &Grid, pos: &(usize, usize)) -> u32 {
+    if grid.at(pos) == 9 {
+        return 1;
+    }
+
+    grid.possible_next_positions(&pos)
+        .iter()
+        .map(|next_pos| find_trailhead_score_distinct(grid, next_pos))
+        .sum()
 }
 
 #[cfg(test)]
@@ -128,6 +147,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(81));
     }
 }
