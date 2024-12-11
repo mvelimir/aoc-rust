@@ -47,7 +47,11 @@ fn transform_stone(num: u64, blinks: u8) -> u64 {
     }
 }
 
-fn transform_stone_memoization(num: u64, blinks: u8, memoization: &mut HashMap<String, u64>) -> u64 {
+fn transform_stone_memoization(
+    num: u64,
+    blinks: u8,
+    memoization: &mut HashMap<String, u64>,
+) -> u64 {
     if blinks == 0 {
         1
     } else {
@@ -58,25 +62,33 @@ fn transform_stone_memoization(num: u64, blinks: u8, memoization: &mut HashMap<S
         match num {
             0 => {
                 let res = transform_stone_memoization(1, blinks - 1, memoization);
-                memoization.entry(format!("{},{}", 1, blinks - 1)).or_insert(res);
+                memoization
+                    .entry(format!("{},{}", 1, blinks - 1))
+                    .or_insert(res);
 
                 res
-            },
+            }
             _ if (num as f32).log10().floor() as u32 % 2 == 1 => {
                 let digits = (num as f32).log10().floor() as u32 + 1;
                 let divisor = 10u64.pow(digits / 2);
 
                 let res_1 = transform_stone_memoization(num / divisor, blinks - 1, memoization);
-                memoization.entry(format!("{},{}", num / divisor, blinks - 1)).or_insert(res_1);
+                memoization
+                    .entry(format!("{},{}", num / divisor, blinks - 1))
+                    .or_insert(res_1);
 
                 let res_2 = transform_stone_memoization(num % divisor, blinks - 1, memoization);
-                memoization.entry(format!("{},{}", num % divisor, blinks - 1)).or_insert(res_2);
+                memoization
+                    .entry(format!("{},{}", num % divisor, blinks - 1))
+                    .or_insert(res_2);
 
                 res_1 + res_2
             }
             _ => {
                 let res = transform_stone_memoization(num * 2024, blinks - 1, memoization);
-                memoization.entry(format!("{},{}", num * 2024, blinks - 1)).or_insert(res);
+                memoization
+                    .entry(format!("{},{}", num * 2024, blinks - 1))
+                    .or_insert(res);
 
                 res
             }
@@ -97,6 +109,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(65601038650482));
     }
 }
