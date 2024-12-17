@@ -280,7 +280,7 @@ fn find_best_tiles(
 
         let recorded_cost = visit_grid.get(&state.pos.dir).unwrap().at(state.pos.pos);
 
-        if let Some(cost) = recorded_cost { 
+        if let Some(cost) = recorded_cost {
             if *cost < state.cost {
                 continue;
             }
