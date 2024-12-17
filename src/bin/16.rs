@@ -141,6 +141,7 @@ impl<T> Grid<T> {
 
 #[derive(Hash, PartialEq, Eq, Clone, Debug)]
 struct GridPosition {
+    prev: Option<Box<GridPosition>>,
     pos: (usize, usize),
     dir: Direction,
 }
@@ -170,6 +171,7 @@ pub fn part_one(input: &str) -> Option<u32> {
         visit_grid.insert(dir, Grid::from_grid(&grid, |_| false));
     }
     let start = GridPosition {
+        prev: None,
         pos: grid.find_first('S').unwrap(),
         dir: Direction::Right,
     };
@@ -180,17 +182,20 @@ pub fn part_one(input: &str) -> Option<u32> {
 
 pub fn part_two(input: &str) -> Option<u32> {
     let grid = Grid::from_str(input);
-    let mut visit_grid = HashMap::new();
+    let mut record_grid = HashMap::new();
     for dir in Grid::<()>::ALL_DIRECTIONS {
-        visit_grid.insert(dir, Grid::from_grid(&grid, |_| false));
+        record_grid.insert(dir, Grid::from_grid(&grid, |_| None));
     }
     let start = GridPosition {
+        prev: None,
         pos: grid.find_first('S').unwrap(),
         dir: Direction::Right,
     };
     let end = grid.find_first('E').unwrap();
 
-    find_best_spots(&grid, &mut visit_grid, start, end)
+    let best_tiles = find_best_tiles(&grid, &mut record_grid, start, end);
+
+    Some(best_tiles.len() as u32)
 }
 
 fn find_best_path(
@@ -230,6 +235,7 @@ fn find_best_path(
 
                     min_queue.push(State {
                         pos: GridPosition {
+                            prev: None,
                             pos: next_pos,
                             dir: dir.clone(),
                         },
@@ -242,53 +248,72 @@ fn find_best_path(
     None
 }
 
-fn find_best_distance(
+fn find_best_tiles(
     grid: &Grid<char>,
-    visit_grid: &mut HashMap<Direction, Grid<bool>>,
+    visit_grid: &mut HashMap<Direction, Grid<Option<u32>>>,
     pos: GridPosition,
     end_pos: (usize, usize),
-) -> Option<u32> {
+) -> HashSet<(usize, usize)> {
     let mut min_queue = BinaryHeap::new();
 
     min_queue.push(State { pos, cost: 0 });
 
+    let mut best_cost = None;
+    let mut best_tiles = HashSet::new();
+
     while let Some(state) = min_queue.pop() {
         if state.pos.pos == end_pos {
-            return Some(state.cost);
-        }
+            best_cost.get_or_insert(state.cost);
 
-        if *visit_grid.get(&state.pos.dir).unwrap().at(state.pos.pos) == true {
+            if state.cost == best_cost.unwrap() {
+                let mut curr_pos = Box::new(state.pos);
+                best_tiles.insert(curr_pos.pos);
+
+                while let Some(prev_pos) = curr_pos.prev {
+                    curr_pos = prev_pos;
+                    best_tiles.insert(curr_pos.pos);
+                }
+            }
+
             continue;
         }
+
+        let recorded_cost = visit_grid.get(&state.pos.dir).unwrap().at(state.pos.pos);
+
+        if let Some(cost) = recorded_cost { 
+            if *cost < state.cost {
+                continue;
+            }
+        }
+
         *visit_grid
             .get_mut(&state.pos.dir)
             .unwrap()
-            .at_mut(state.pos.pos) = true;
+            .at_mut(state.pos.pos) = Some(state.cost);
 
         grid.neighbors_with_dirs(&state.pos.pos)
             .filter(|(next_pos, _)| *grid.at(*next_pos) != '#')
             .for_each(|(next_pos, dir)| {
-                if *visit_grid.get(&dir).unwrap().at(next_pos) == false {
-                    let next_cost = if *dir == state.pos.dir {
-                        1
-                    } else if state.pos.dir.adjacent().contains(dir) {
-                        1001
-                    } else {
-                        2001
-                    };
+                let next_cost = if *dir == state.pos.dir {
+                    1
+                } else if state.pos.dir.adjacent().contains(dir) {
+                    1001
+                } else {
+                    2001
+                };
 
-                    min_queue.push(State {
-                        pos: GridPosition {
-                            pos: next_pos,
-                            dir: dir.clone(),
-                        },
-                        cost: state.cost + next_cost,
-                    });
-                }
+                min_queue.push(State {
+                    pos: GridPosition {
+                        prev: Some(Box::new(state.pos.clone())),
+                        pos: next_pos,
+                        dir: dir.clone(),
+                    },
+                    cost: state.cost + next_cost,
+                });
             });
     }
 
-    None
+    best_tiles
 }
 
 #[cfg(test)]
