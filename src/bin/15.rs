@@ -83,10 +83,6 @@ impl<T> Grid<T> {
         self.find(val).next()
     }
 
-    fn out_of_bounds(&self, pos: (isize, isize)) -> bool {
-        pos.0 < 0 || pos.0 >= self.width as isize || pos.1 < 0 || pos.1 >= self.height as isize
-    }
-
     fn iterate(&self) -> impl Iterator<Item = ((usize, usize), &T)> {
         self.data
             .iter()
