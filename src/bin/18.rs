@@ -98,6 +98,22 @@ pub fn part_one(input: &str) -> Option<u32> {
 }
 
 pub fn part_two(input: &str) -> Option<String> {
+    let start = (0, 0);
+    let end = (70, 70);
+    let mut grid = Grid::initialize(end.0 + 1, end.1 + 1, '.');
+
+    for pos in input
+        .lines()
+        .map(|x| x.split_once(',').unwrap())
+        .map(|(x, y)| (x.parse().unwrap(), y.parse().unwrap()))
+    {
+        *grid.at_mut(pos) = '#';
+
+        if find_shortest_path_len(&mut grid.clone(), start, end).is_none() {
+            return Some(format!("{},{}", pos.0, pos.1));
+        }
+    }
+
     None
 }
 
