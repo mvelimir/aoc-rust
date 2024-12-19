@@ -29,6 +29,7 @@ impl Direction {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Clone)]
 struct Grid<T> {
     data: Vec<T>,
@@ -43,14 +44,6 @@ impl Grid<char> {
             width: str.lines().next().unwrap().len(),
             height: str.lines().count(),
         }
-    }
-
-    fn to_str(&self) -> String {
-        self.data
-            .chunks(self.width)
-            .map(|chunk| chunk.iter().collect::<String>())
-            .collect::<Vec<_>>()
-            .join("\n")
     }
 }
 

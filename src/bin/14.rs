@@ -1,4 +1,4 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::HashMap;
 
 advent_of_code::solution!(14);
 
@@ -7,6 +7,7 @@ struct Robot {
     vel: (i32, i32),
 }
 
+#[allow(dead_code)]
 struct Grid {
     data: Vec<char>,
     width: usize,

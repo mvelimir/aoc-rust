@@ -225,19 +225,6 @@ pub fn part_two(input: &str) -> Option<u64> {
     Some(possible_a_vals.into_iter().min().unwrap())
 }
 
-fn bits_match(num1: u64, num2: u64) -> bool {
-    let bit_length = num1.min(num2).leading_zeros();
-    let mask = !0 >> (64 - bit_length);
-
-    (num1 & mask) == (num2 & mask)
-}
-
-fn prepend_extra_bits(prefix: u64, number: u64, extra: u32) -> u64 {
-    let prefix_bits = (prefix >> (64 - prefix.leading_zeros() - extra)) % 8;
-
-    (prefix_bits << (64 - number.leading_zeros())) | number
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

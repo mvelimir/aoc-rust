@@ -1,6 +1,6 @@
 use std::{
     cmp::Ordering,
-    collections::{BinaryHeap, HashMap, HashSet, VecDeque},
+    collections::{BinaryHeap, HashMap, HashSet},
 };
 
 advent_of_code::solution!(16);
@@ -14,16 +14,6 @@ enum Direction {
 }
 
 impl Direction {
-    fn from_char(char: char) -> Option<Self> {
-        match char {
-            '^' => Some(Direction::Up),
-            '>' => Some(Direction::Right),
-            'v' => Some(Direction::Down),
-            '<' => Some(Direction::Left),
-            _ => None,
-        }
-    }
-
     fn value(&self) -> (i8, i8) {
         match *self {
             Direction::Up => (0, -1),
@@ -41,6 +31,7 @@ impl Direction {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Clone)]
 struct Grid<T> {
     data: Vec<T>,
@@ -55,14 +46,6 @@ impl Grid<char> {
             width: str.lines().next().unwrap().len(),
             height: str.lines().count(),
         }
-    }
-
-    fn to_str(&self) -> String {
-        self.data
-            .chunks(self.width)
-            .map(|chunk| chunk.iter().collect::<String>())
-            .collect::<Vec<_>>()
-            .join("\n")
     }
 }
 

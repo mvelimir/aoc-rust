@@ -1,7 +1,3 @@
-use std::io::empty;
-
-use advent_of_code::template::aoc_cli::check;
-
 advent_of_code::solution!(9);
 
 pub fn part_one(input: &str) -> Option<u64> {
@@ -55,7 +51,7 @@ pub fn part_one(input: &str) -> Option<u64> {
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    let mut vec: Vec<u64> = input
+    let vec: Vec<u64> = input
         .lines()
         .next()
         .unwrap()
