@@ -1,5 +1,6 @@
 advent_of_code::solution!(17);
 
+#[derive(Debug)]
 enum InstructionType {
     Adv,
     Bxl,
@@ -27,6 +28,7 @@ impl InstructionType {
     }
 }
 
+#[derive(Debug)]
 struct Instruction {
     typ: InstructionType,
     operand: u8,
@@ -41,11 +43,11 @@ impl Instruction {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct DeviceState {
-    reg_a: u32,
-    reg_b: u32,
-    reg_c: u32,
+    reg_a: u64,
+    reg_b: u64,
+    reg_c: u64,
     instr_p: usize,
     program: Vec<u8>,
 }
@@ -107,9 +109,9 @@ impl DeviceState {
         }
     }
 
-    fn get_combo_operand(&self, operand: u8) -> u32 {
+    fn get_combo_operand(&self, operand: u8) -> u64 {
         match operand {
-            0..4 => operand as u32,
+            0..4 => operand as u64,
             4 => self.reg_a,
             5 => self.reg_b,
             6 => self.reg_c,
@@ -120,12 +122,12 @@ impl DeviceState {
     fn execute_instruction(&mut self, instr: Instruction) -> Option<String> {
         match instr.typ {
             InstructionType::Adv => {
-                self.reg_a = self.reg_a / 2u32.pow(self.get_combo_operand(instr.operand));
+                self.reg_a = self.reg_a >> self.get_combo_operand(instr.operand);
 
                 None
             }
             InstructionType::Bxl => {
-                self.reg_b = self.reg_b ^ instr.operand as u32;
+                self.reg_b = self.reg_b ^ instr.operand as u64;
 
                 None
             }
@@ -135,9 +137,9 @@ impl DeviceState {
                 None
             }
             InstructionType::Jnz => {
-                if self.reg_a != 0 {
-                    self.instr_p = instr.operand as usize;
-                }
+                //if self.reg_a != 0 {
+                //    self.instr_p = instr.operand as usize;
+                //}
 
                 None
             }
@@ -152,12 +154,12 @@ impl DeviceState {
                 Some(output)
             }
             InstructionType::Bdv => {
-                self.reg_b = self.reg_a / 2u32.pow(self.get_combo_operand(instr.operand));
+                self.reg_b = self.reg_a >> self.get_combo_operand(instr.operand);
 
                 None
             }
             InstructionType::Cdv => {
-                self.reg_c = self.reg_a / 2u32.pow(self.get_combo_operand(instr.operand));
+                self.reg_c = self.reg_a >> self.get_combo_operand(instr.operand);
 
                 None
             }
@@ -173,8 +175,67 @@ pub fn part_one(input: &str) -> Option<String> {
     Some(output)
 }
 
-pub fn part_two(input: &str) -> Option<String> {
-    None
+pub fn part_two(input: &str) -> Option<u64> {
+    let device = DeviceState::from_str(input);
+
+    let mut desired_output = device.program.clone();
+    let mut possible_a_vals = vec![];
+    let mut next_possible_a_vals = vec![];
+
+    let mut iter_count = 0;
+
+    while let Some(desired_val) = desired_output.pop() {
+        let desired_val = desired_val.to_string();
+
+        if iter_count == 0 {
+            for val in 0..8 {
+                let mut device = device.clone();
+
+                device.reg_a = val;
+
+                let output = device.execute();
+
+                if output == desired_val {
+                    possible_a_vals.push(val);
+                }
+            }
+        } else {
+            for val in 0..8 {
+                for possible_a in possible_a_vals.iter() {
+                    let val = possible_a << 3 | val;
+
+                    let mut device = device.clone();
+
+                    device.reg_a = val;
+
+                    let output = device.execute();
+
+                    if output == desired_val {
+                        next_possible_a_vals.push(val);
+                    }
+                }
+            }
+
+            possible_a_vals = std::mem::take(&mut next_possible_a_vals);
+        }
+
+        iter_count += 1;
+    }
+
+    Some(possible_a_vals.into_iter().min().unwrap())
+}
+
+fn bits_match(num1: u64, num2: u64) -> bool {
+    let bit_length = num1.min(num2).leading_zeros();
+    let mask = !0 >> (64 - bit_length);
+
+    (num1 & mask) == (num2 & mask)
+}
+
+fn prepend_extra_bits(prefix: u64, number: u64, extra: u32) -> u64 {
+    let prefix_bits = (prefix >> (64 - prefix.leading_zeros() - extra)) % 8;
+
+    (prefix_bits << (64 - number.leading_zeros())) | number
 }
 
 #[cfg(test)]
@@ -184,7 +245,7 @@ mod tests {
     #[test]
     fn test_part_one() {
         let result = part_one(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, Some(String::from("4635635210")));
+        assert_eq!(result, Some(String::from("4,6,3,5,6,3,5,2,1,0")));
     }
 
     #[test]
