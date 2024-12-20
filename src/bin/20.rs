@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet, VecDeque};
 
 advent_of_code::solution!(20);
 
@@ -127,6 +127,12 @@ impl<T> Grid<T> {
     }
 }
 
+#[derive(Hash, PartialEq, Eq, Clone)]
+struct Position {
+    pos: (usize, usize),
+    cost: u32,
+}
+
 pub fn part_one(input: &str) -> Option<u32> {
     let mut grid = Grid::from_str(input);
 
@@ -135,13 +141,28 @@ pub fn part_one(input: &str) -> Option<u32> {
 
     let from_start = find_dist_from_start(&grid, start, end);
 
-    let res = find_shortcut_lenghts(&mut grid, &from_start, start, end).into_iter().filter(|&x| x >= 100).count();
+    let res = find_shortcut_lenghts(&mut grid, &from_start, start, end)
+        .into_iter()
+        .filter(|&x| x >= 100)
+        .count();
 
     Some(res as u32)
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    None
+    let mut grid = Grid::from_str(input);
+
+    let start = grid.find_first('S').unwrap();
+    let end = grid.find_first('E').unwrap();
+
+    let from_start = find_dist_from_start(&grid, start, end);
+
+    let res = find_20ps_shortcut_lenghts(&mut grid, &from_start, start, end)
+        .into_iter()
+        .filter(|&x| x >= 100)
+        .count();
+
+    Some(res as u32)
 }
 
 fn find_dist_from_start(
@@ -194,7 +215,9 @@ fn find_shortcut_lenghts(
             let next_pos = (next_pos.0 as usize, next_pos.1 as usize);
 
             if *grid.at(next_pos) != '#' {
-                let save = *from_start.get(&next_pos).unwrap() as i32 - *from_start.get(&current).unwrap() as i32 - 2;
+                let save = *from_start.get(&next_pos).unwrap() as i32
+                    - *from_start.get(&current).unwrap() as i32
+                    - 2;
 
                 if save >= 0 {
                     shortcut_lengths.push(save as u32);
@@ -213,6 +236,102 @@ fn find_shortcut_lenghts(
     }
 
     shortcut_lengths
+}
+
+fn find_20ps_shortcut_lenghts(
+    grid: &mut Grid<char>,
+    from_start: &HashMap<(usize, usize), u32>,
+    start: (usize, usize),
+    end: (usize, usize),
+) -> Vec<u32> {
+    let mut shortcut_lengths = vec![];
+    let mut current = start;
+
+    loop {
+        *grid.at_mut(current) = '#';
+
+        let shortcuts = find_shortcuts_from(&grid, current, 20);
+
+        for next_pos in shortcuts {
+            let save = *from_start.get(&next_pos.pos).unwrap() as i32
+                - *from_start.get(&current).unwrap() as i32
+                - next_pos.cost as i32;
+
+            if save >= 0 {
+                shortcut_lengths.push(save as u32);
+            }
+        }
+
+        if current == end {
+            break;
+        }
+
+        current = grid
+            .neighbors(current)
+            .find(|x| *grid.at(*x) != '#')
+            .unwrap();
+    }
+
+    shortcut_lengths
+}
+
+fn find_shortcuts_from4(
+    grid: &Grid<char>,
+    start: (usize, usize),
+    remaining_depth: i32,
+    shortcuts: &mut HashSet<(usize, usize)>,
+) -> () {
+    if remaining_depth < 0 {
+        return;
+    }
+
+    if *grid.at(start) != '#' {
+        shortcuts.insert(start);
+
+        return;
+    }
+
+    for pos in grid.neighbors(start) {
+        find_shortcuts_from4(grid, pos, remaining_depth - 1, shortcuts);
+    }
+}
+
+fn find_shortcuts_from(
+    grid: &Grid<char>,
+    start: (usize, usize),
+    max_dist: u32,
+) -> HashSet<Position> {
+    let mut res = HashSet::new();
+    let mut queue = VecDeque::new();
+    let mut queued = HashSet::new();
+
+    queue.push_back(Position {
+        pos: start,
+        cost: 0,
+    });
+
+    while let Some(pos) = queue.pop_front() {
+        if pos.cost > max_dist {
+            break;
+        }
+
+        if *grid.at(pos.pos) != '#' {
+            res.insert(pos.clone());
+        }
+
+        for at in grid.neighbors(pos.pos) {
+            if !queued.contains(&at) {
+                queue.push_back(Position {
+                    pos: at,
+                    cost: pos.cost + 1,
+                });
+
+                queued.insert(at);
+            }
+        }
+    }
+
+    res
 }
 
 fn toward(pos: (usize, usize), dir: &Direction) -> (isize, isize) {
