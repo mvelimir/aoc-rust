@@ -47,17 +47,6 @@ impl<T> Grid<T> {
         Direction::Left,
     ];
 
-    fn from_grid<F, U>(&self, map: F) -> Grid<U>
-    where
-        F: Fn(&T) -> U,
-    {
-        Grid {
-            data: self.data.iter().map(|x| map(x)).collect(),
-            width: self.width,
-            height: self.height,
-        }
-    }
-
     fn at(&self, pos: (usize, usize)) -> &T {
         let idx = self.width * pos.1 + pos.0;
         &self.data[idx]
@@ -273,27 +262,6 @@ fn find_20ps_shortcut_lenghts(
     }
 
     shortcut_lengths
-}
-
-fn find_shortcuts_from4(
-    grid: &Grid<char>,
-    start: (usize, usize),
-    remaining_depth: i32,
-    shortcuts: &mut HashSet<(usize, usize)>,
-) -> () {
-    if remaining_depth < 0 {
-        return;
-    }
-
-    if *grid.at(start) != '#' {
-        shortcuts.insert(start);
-
-        return;
-    }
-
-    for pos in grid.neighbors(start) {
-        find_shortcuts_from4(grid, pos, remaining_depth - 1, shortcuts);
-    }
 }
 
 fn find_shortcuts_from(
