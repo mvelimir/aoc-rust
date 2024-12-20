@@ -49,11 +49,15 @@ fn is_pattern_possible(
         for &towel in towels.iter() {
             if pattern[0..i] == *towel {
                 if is_pattern_possible(&pattern[i..], towels, pattern_possibility) {
-                    pattern_possibility.entry(String::from(pattern)).or_insert(true);
+                    pattern_possibility
+                        .entry(String::from(pattern))
+                        .or_insert(true);
 
                     return true;
                 } else {
-                    pattern_possibility.entry(String::from(&pattern[i..])).or_insert(false);
+                    pattern_possibility
+                        .entry(String::from(&pattern[i..]))
+                        .or_insert(false);
                 }
             }
         }
@@ -82,7 +86,9 @@ fn pattern_possibility_count(
             if pattern[0..i] == *towel {
                 let count = pattern_possibility_count(&pattern[i..], towels, pattern_possibility);
 
-                pattern_possibility.entry(String::from(&pattern[i..])).or_insert(count);
+                pattern_possibility
+                    .entry(String::from(&pattern[i..]))
+                    .or_insert(count);
 
                 total_count += count;
             }
